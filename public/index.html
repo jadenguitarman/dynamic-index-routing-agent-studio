@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dynamic index routing · Agent Studio</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <div class="eyebrow"><span class="pulse"></span> Local implementation demo</div>
+        <h1>Route the question<br /><em>before</em> the agent runs.</h1>
+        <p class="lede">The application chooses a trusted route and its approved Algolia index set. The browser can inspect that decision, but it never chooses an index.</p>
+        <div class="contract-strip">
+          <span>Server-owned route map</span>
+          <span>Allowlisted indices</span>
+          <span>Agent Studio REST API v1</span>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Routing demo">
+        <div class="panel route-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">01 / trusted context</p>
+              <h2>Choose the context</h2>
+            </div>
+            <span id="config-status" class="status-chip">Loading…</span>
+          </div>
+          <p class="panel-intro">These choices come from the server-side route map. They are not index names.</p>
+          <div id="routes" class="route-list" aria-live="polite"></div>
+          <div id="route-empty" class="empty-state" hidden>
+            <strong>No approved indices configured.</strong>
+            <span>Add dedicated test indices or partitions to <code>.env</code> before running a completion.</span>
+          </div>
+        </div>
+
+        <div class="panel request-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">02 / request</p>
+              <h2>Ask a question</h2>
+            </div>
+            <span class="rest-badge">POST /completions</span>
+          </div>
+          <label class="question-label" for="question">Question</label>
+          <textarea id="question" rows="5" maxlength="4000" placeholder="Which products are best for a rainy weekend?">Which products are best for a rainy weekend?</textarea>
+          <div class="request-footer">
+            <span class="hint">The selected indices are computed again on the server.</span>
+            <button id="run" type="button" disabled>Run completion <span aria-hidden="true">↗</span></button>
+          </div>
+          <p id="error" class="error-message" role="alert" hidden></p>
+        </div>
+      </section>
+
+      <section class="decision panel" aria-live="polite">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">03 / pre-request decision</p>
+            <h2>What will be sent</h2>
+          </div>
+          <span class="decision-label">Visible before execution</span>
+        </div>
+        <div id="decision-content" class="decision-content">
+          <div class="decision-placeholder">Choose a context above to inspect the route and approved index set.</div>
+        </div>
+      </section>
+
+      <section id="result" class="result-grid" hidden>
+        <div class="panel answer-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">04 / response</p>
+              <h2>Agent response</h2>
+            </div>
+            <span id="response-state" class="status-chip success">Complete</span>
+          </div>
+          <div id="answer" class="answer"></div>
+        </div>
+        <div class="panel evidence-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">request record</p>
+              <h2>Evidence</h2>
+            </div>
+          </div>
+          <dl id="evidence" class="evidence"></dl>
+          <div class="metadata-block">
+            <span class="meta-label">Search-tool metadata</span>
+            <pre id="metadata">Not returned by provider.</pre>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        <span>Illustrative local measurements only.</span>
+        <span>Secrets stay on the server.</span>
+      </footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
