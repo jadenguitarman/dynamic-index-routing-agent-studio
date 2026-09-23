@@ -1,13 +1,22 @@
 # Dynamic index routing in Agent Studio
 
-Technical demo for showing how an application selects an approved Algolia index set before sending a direct Agent Studio completion request.
+Local demo of an application choosing an approved Algolia index set before a direct Agent Studio completion request.
 
-## Planned demo
+## User contract
 
-- Server-side route map based on trusted request context.
-- Approved route names mapped to approved index targets.
-- Direct Agent Studio completion request using the exact API/client version documented by the demo.
-- Visible rejection of routes or indices outside the allowlist.
-- Timing for route selection, completion, and search-tool calls where available.
+- Routing is controlled by the application and a server-side allowlist.
+- Users can inspect the selected route and index set before the request runs.
+- The demo never treats a browser-provided index name as trusted.
+- With one available index, it demonstrates request construction only; it does not claim to demonstrate dynamic selection.
+- Results are illustrative and are not production performance claims.
 
-If the test environment has only one index, the demo will show route selection and request construction but will not claim to demonstrate dynamic index selection.
+## Planned local use
+
+1. Copy `.env.example` to `.env` and fill in the required values.
+2. Install the project dependencies.
+3. Start the local app with `npm run dev`.
+4. Choose a trusted context, enter a product question, and inspect the route, approved indices, response, and timings.
+
+The exact API/client version used by the demo must be documented in the implementation before the request shape is treated as stable.
+
+See [SPEC.md](SPEC.md) for the implementation contract.
