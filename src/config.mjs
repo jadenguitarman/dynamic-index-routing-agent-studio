@@ -5,19 +5,25 @@ import { resolve } from "node:path";
 const INDEX_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
 function loadDotEnv(filePath = resolve(process.cwd(), ".env")) {
-  if (!existsSync(filePath)) return;
+  const paths = filePath === resolve(process.cwd(), ".env")
+    ? [resolve(process.cwd(), "..", ".env"), filePath]
+    : [filePath];
 
-  const contents = readFileSync(filePath, "utf8");
-  for (const line of contents.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
+  for (const candidate of paths) {
+    if (!existsSync(candidate)) continue;
 
-    const separator = trimmed.indexOf("=");
-    if (separator < 1) continue;
+    const contents = readFileSync(candidate, "utf8");
+    for (const line of contents.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
 
-    const key = trimmed.slice(0, separator).trim();
-    const value = trimmed.slice(separator + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
-    if (!process.env[key]) process.env[key] = value;
+      const separator = trimmed.indexOf("=");
+      if (separator < 1) continue;
+
+      const key = trimmed.slice(0, separator).trim();
+      const value = trimmed.slice(separator + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
+      if (!process.env[key]) process.env[key] = value;
+    }
   }
 }
 
@@ -35,7 +41,7 @@ export function loadConfig({ env = process.env, dotenvPath } = {}) {
 
   const applicationId = (env.ALGOLIA_APPLICATION_ID || "").trim();
   const apiKey = (env.ALGOLIA_AGENT_STUDIO_API_KEY || "").trim();
-  const agentId = (env.AGENT_STUDIO_AGENT_ID || "").trim();
+  const agentId = (env.DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID || "").trim();
   const approvedIndices = parseIndexAllowlist(env.ALGOLIA_INDEX_ALLOWLIST || "");
   const port = Number.parseInt(env.PORT || "3000", 10);
 
@@ -70,7 +76,7 @@ export function assertCompletionConfig(config) {
   const missing = [];
   if (!config.applicationId) missing.push("ALGOLIA_APPLICATION_ID");
   if (!config.apiKey) missing.push("ALGOLIA_AGENT_STUDIO_API_KEY");
-  if (!config.agentId) missing.push("AGENT_STUDIO_AGENT_ID");
+  if (!config.agentId) missing.push("DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID");
   if (config.approvedIndices.length === 0) missing.push("ALGOLIA_INDEX_ALLOWLIST");
   if (missing.length > 0) {
     const error = new Error(`Missing required configuration: ${missing.join(", ")}`);

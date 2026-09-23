@@ -12,16 +12,18 @@ Local demo of an application choosing an approved Algolia index set before a dir
 
 ## Local use
 
-1. Copy `.env.example` to `.env`.
-2. Fill in `ALGOLIA_APPLICATION_ID`, `ALGOLIA_PRODUCT_INDEX`, the runtime, management, and indexing keys, and the Agent Studio provider/model if the script will create an agent.
-3. Run `npm run provision`. It verifies the product index, creates and seeds the support index, and creates or updates the direct Agent Studio agent. It writes non-secret IDs and index names to the ignored `provisioned.env` file.
-4. Copy the printed `ALGOLIA_INDEX_ALLOWLIST` and `AGENT_STUDIO_AGENT_ID` values into `.env`. Set `PUBLISH_AGENTS=true` or pass `--publish` when the draft is ready to publish.
+1. From the parent `Algolia Projects` folder, copy the shared `.env.example` to `.env`.
+2. Fill in the application ID, product index, Agent Studio key, management/indexing keys, and Agent Studio provider/model. Do not fill in generated index names, allowlists, or agent IDs.
+3. Run `npm run provision`. It verifies the product index, creates and seeds the support index, and creates or updates the direct Agent Studio agent. Generated IDs and index names are written back to the shared `.env` and to the ignored `provisioned.env` file.
+4. The script writes `ALGOLIA_SUPPORT_INDEX`, `ALGOLIA_INDEX_ALLOWLIST`, and `DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID` into the shared `.env`, preserving the credentials you supplied. Set `PUBLISH_AGENTS=true` or pass `--publish` when the draft is ready to publish.
 5. Start the Next.js app with `npm run dev`, then open `http://localhost:3000`. For a production-style local check, run `npm run build && npm start`.
 6. Choose a trusted context, enter a question, and inspect the route, approved indices, response, and timings.
 
-`ALGOLIA_INDEX_ALLOWLIST` is ordered: the first approved index backs the Product catalog route, and the second backs the Support knowledge route. Use dedicated test indices or partitions for this demo. If only one index is configured, the app intentionally exposes one route and labels the result as request-construction evidence rather than dynamic-routing evidence.
+`ALGOLIA_INDEX_ALLOWLIST` is generated and ordered: it contains the product index you supplied first, followed by the support index created by the script. The script overwrites any manually supplied allowlist so an unrelated index cannot enter the demo route map.
 
 `npm run provision -- --dry-run` checks the local values and prints the planned writes without contacting Algolia. `--skip-index` leaves the support index alone; `--skip-agent` leaves the Agent Studio agent alone. The provisioning script uses the direct Agent Studio API and Algolia Search indexing endpoints; it does not use DocSearch.
+
+To update the linked Vercel project after provisioning, export a Vercel access token in the shell and add `--sync-vercel`: `VERCEL_TOKEN=... npm run provision -- --publish --sync-vercel`. This updates production, preview, and development with only runtime values; management and indexing keys are never uploaded. A new deployment is required for Vercel environment changes to take effect.
 
 ## Implementation details
 
