@@ -1,4 +1,8 @@
 .env
 node_modules/
+.next/
 dist/
 .DS_Store
+.vercel
+.env*
+provisioned.env

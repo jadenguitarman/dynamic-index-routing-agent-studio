@@ -25,7 +25,11 @@ Build a small local app that accepts trusted context and a user question, maps t
 - The browser may submit a route ID and question, but it cannot submit an index list. The server resolves the route again and rejects a request that attempts to provide `indices`.
 - Provider search-tool metadata is preserved only when the completion response returns a supported metadata field; missing metadata remains explicitly absent.
 
-The request details above were verified against Algolia’s current [Agent Studio migration guidance](https://docsearch.algolia.com/docs/agent-studio/migrate-to-agent-studio/) and [dynamic indices documentation](https://docsearch.algolia.com/docs/agent-studio/dynamic-indices/) on 2026-09-22.
+The provisioning script configures Agent Studio’s native `algolia_search_index` tool with `mode: "dynamic"` and `allowUnlistedIndices: true`. The implementation is based on Algolia’s [Agent Studio API](https://www.algolia.com/doc/rest-api/agent-studio) and [tools guide](https://www.algolia.com/doc/guides/algolia-ai/agent-studio/how-to/tools/overview).
+
+## Provisioning
+
+`npm run provision` verifies the supplied product index, creates and seeds a small support index, and creates or updates the demo agent through the direct Agent Studio API. `ALGOLIA_INDEXING_API_KEY` is used only for index writes; `ALGOLIA_AGENT_STUDIO_MANAGEMENT_API_KEY` is used only for agent create/update/publish; `ALGOLIA_AGENT_STUDIO_API_KEY` remains the runtime completion key. The script never needs an Admin API key. `--dry-run`, `--skip-index`, `--skip-agent`, and `--publish` control the operation without changing the application contract.
 
 ## Non-goals
 
@@ -35,4 +39,4 @@ No arbitrary index selection, authentication replacement, production dashboard, 
 
 The demo makes the pre-request routing decision visible, blocks an unallowlisted target, and preserves secrets outside the browser and repository.
 
-Local acceptance checks are `npm test`, `node --check server.mjs`, `node --check public/app.js`, and `git diff --check`. A real provider completion remains unverified until a user supplies a published agent, a Search API key, and dedicated test indices in `.env`.
+Local acceptance checks are `npm test`, `npm run build`, `node --check public/app.js`, and `git diff --check`. The browser is served by Next.js, and provider calls run in Node.js Route Handlers compatible with Vercel. A real provider completion remains unverified until a user supplies a published agent, a Search API key, and dedicated test indices in `.env`.
