@@ -107,8 +107,13 @@ function formatMetadata(metadata) {
   return metadata ? JSON.stringify(metadata, null, 2) : "Not returned by provider.";
 }
 
+function comparableIndexName(index) {
+  return index.replaceAll("-", "_");
+}
+
 function renderScopeCheck(selectedIndices, executedIndices) {
-  const unexpected = executedIndices.filter((index) => !selectedIndices.includes(index));
+  const selectedComparableNames = new Set(selectedIndices.map(comparableIndexName));
+  const unexpected = executedIndices.filter((index) => !selectedComparableNames.has(comparableIndexName(index)));
   elements.scopeCheck.hidden = false;
   elements.scopeCheck.className = `scope-check ${unexpected.length > 0 ? "mismatch" : "matched"}`;
   if (unexpected.length > 0) {
