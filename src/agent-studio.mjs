@@ -98,6 +98,7 @@ export async function requestCompletion({ config, question, fetchImpl = fetch, t
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    console.error("Agent Studio completion target", { agentIdType: typeof config.agentId, agentIdLength: config.agentId?.length || 0, agentIdPrefix: config.agentId?.slice?.(0, 8) || "", agentIdSuffix: config.agentId?.slice?.(-4) || "" });
     const response = await fetchImpl(completionUrl(config), {
       method: "POST",
       headers: {
