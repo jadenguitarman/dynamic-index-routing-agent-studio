@@ -70,7 +70,7 @@ function renderExamples() {
 function renderDecision() {
   const route = selectedRoute();
   if (!route) {
-    elements.decision.innerHTML = `<div class="decision-placeholder">Choose a context above to see how the application selects a scope-specific Agent Studio agent.</div>`;
+    elements.decision.innerHTML = `<div class="decision-placeholder">Choose a context above to see how the application narrows the search scope for the same Agent Studio agent.</div>`;
     elements.requestPayload.textContent = "Select a context to inspect the server routing record.";
     renderExamples();
     elements.run.disabled = true;
@@ -82,9 +82,9 @@ function renderDecision() {
     <div class="decision-arrow" aria-hidden="true">→</div>
     <div class="decision-step"><span class="meta-label">Route alias</span><strong><code>${route.id}</code></strong><small>Readable application context, not an index name.</small></div>
     <div class="decision-arrow" aria-hidden="true">→</div>
-    <div class="decision-step"><span class="meta-label">Configured scope</span><div class="index-list">${formatIndexList(route.indices)}</div><small>Owned by the selected Agent Studio agent.</small></div>
+    <div class="decision-step"><span class="meta-label">Request scope</span><div class="index-list">${formatIndexList(route.indices)}</div><small>Sent as <code>algolia.indices</code> to the same agent.</small></div>
   `;
-  elements.requestPayload.textContent = JSON.stringify({ route: route.id, agent: route.agentLabel, configuredScope: route.indices }, null, 2);
+  elements.requestPayload.textContent = JSON.stringify({ route: route.id, agent: route.agentLabel, algolia: { indices: route.indices } }, null, 2);
   renderExamples();
   elements.run.disabled = false;
 }
@@ -98,7 +98,7 @@ function renderReadiness(data) {
   const ready = data.readiness.applicationId
     && data.readiness.apiKey
     && data.readiness.indices
-    && Object.values(data.readiness.agents || {}).every(Boolean);
+    && data.readiness.agent;
   elements.status.textContent = ready ? "Ready to run" : "Config needed";
   elements.status.classList.toggle("warning", !ready);
 }
@@ -124,7 +124,7 @@ function renderScopeCheck(selectedIndices, executedIndices) {
     elements.scopeCheck.innerHTML = "<strong>No search tool call reported</strong><span>The agent answered without a reported Algolia search.</span>";
     return;
   }
-  elements.scopeCheck.innerHTML = `<strong>Scope matched</strong><span>Agent Studio searched only ${formatIndexList(executedIndices)} from the selected agent's configured scope.</span>`;
+    elements.scopeCheck.innerHTML = `<strong>Scope matched</strong><span>The same Agent Studio agent searched only ${formatIndexList(executedIndices)} from the server-selected request scope.</span>`;
 }
 
 function renderResult(data) {

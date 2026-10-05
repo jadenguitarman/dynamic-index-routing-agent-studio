@@ -6,7 +6,11 @@ export function completionUrl(config) {
   return `https://${applicationId}.algolia.net/agent-studio/1/agents/${agentId}/completions?stream=false&compatibilityMode=ai-sdk-5`;
 }
 
-export function createCompletionPayload(question) {
+export function createCompletionPayload(question, indices) {
+  if (!Array.isArray(indices) || indices.length === 0) {
+    throw new Error("Agent Studio completion requests need at least one selected index.");
+  }
+
   return {
     id: `alg_cnv_${randomUUID()}`,
     messages: [{
@@ -14,6 +18,7 @@ export function createCompletionPayload(question) {
       role: "user",
       parts: [{ type: "text", text: question }],
     }],
+    algolia: { indices },
   };
 }
 
@@ -93,7 +98,7 @@ export function parseProviderBody(text, contentType = "") {
   }
 }
 
-export async function requestCompletion({ config, question, fetchImpl = fetch, timeoutMs = 30_000 }) {
+export async function requestCompletion({ config, question, indices, fetchImpl = fetch, timeoutMs = 30_000 }) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -105,7 +110,7 @@ export async function requestCompletion({ config, question, fetchImpl = fetch, t
         "X-Algolia-Application-Id": config.applicationId,
         "X-Algolia-API-Key": config.apiKey,
       },
-      body: JSON.stringify(createCompletionPayload(question)),
+      body: JSON.stringify(createCompletionPayload(question, indices)),
       signal: controller.signal,
     });
 

@@ -24,15 +24,14 @@ export async function POST(request) {
     if (Object.prototype.hasOwnProperty.call(body, "indices")) throw Object.assign(new Error("Indices are selected by the server and must not be provided by the browser."), { statusCode: 400 });
     const config = loadConfig();
     const question = validateQuestion(body.question);
-    const route = resolveRoute(body.route, config.approvedIndices, config.agentIds);
+    const route = resolveRoute(body.route, config.approvedIndices);
     assertApprovedIndices(route.indices, config.approvedIndices);
-    const agentId = config.agentIds[route.agentKey];
-    if (!agentId) throw Object.assign(new Error(`No Agent Studio agent is configured for the ${route.id} route.`), { statusCode: 503 });
+    if (!config.agentId) throw Object.assign(new Error("No dynamic Agent Studio agent is configured."), { statusCode: 503 });
     const routeMs = Math.round(performance.now() - startedAt);
     assertCompletionConfig(config);
     const completionStartedAt = performance.now();
-    const completion = await requestCompletion({ config: { ...config, agentId }, question });
-    return Response.json({ route: { ...route, agentId: undefined }, timings: { routeMs, completionMs: Math.round(performance.now() - completionStartedAt), totalMs: Math.round(performance.now() - startedAt) }, selectedIndices: route.indices, executedSearchIndices: completion.executedSearchIndices, searchToolMetadata: completion.searchToolMetadata, answer: completion.text || "Agent Studio returned no text in the response payload.", provider: config.provider });
+    const completion = await requestCompletion({ config: { ...config, agentId: config.agentId }, question, indices: route.indices });
+    return Response.json({ route, timings: { routeMs, completionMs: Math.round(performance.now() - completionStartedAt), totalMs: Math.round(performance.now() - startedAt) }, selectedIndices: route.indices, request: { algolia: { indices: route.indices } }, executedSearchIndices: completion.executedSearchIndices, searchToolMetadata: completion.searchToolMetadata, answer: completion.text || "Agent Studio returned no text in the response payload.", provider: config.provider });
   } catch (error) {
     return errorResponse(error);
   }

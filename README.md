@@ -1,21 +1,21 @@
 # Dynamic index routing in Agent Studio
 
-Local demo of an application choosing a scope-specific Agent Studio agent from trusted application context.
+Local demo of an application choosing a request-time search scope for one Agent Studio agent from trusted application context.
 
 ## User contract
 
 - Routing is controlled by the application and a server-side allowlist.
 - Users can inspect the application context, selected route, and configured index scope before the request runs.
 - The demo never treats a browser-provided index name as trusted.
-- The result shows the selected agent’s configured scope and the index that Agent Studio actually searched.
+- The result shows the same agent, the request-time scope sent as `algolia.indices`, and the index that Agent Studio actually searched.
 - Results are illustrative and are not production performance claims.
 
 ## Local use
 
 1. From the parent `Algolia Projects` folder, copy the shared `.env.example` to `.env`.
 2. Fill in the application ID, product index, Agent Studio key, management/indexing keys, and Agent Studio provider/model. Do not fill in generated index names, allowlists, or agent IDs.
-3. Run `npm run provision`. It verifies the product index, creates and seeds the support index, and creates or updates the two direct Agent Studio agents. Generated IDs and index names are written back to the shared `.env` and to the ignored `provisioned.env` file.
-4. The script writes `ALGOLIA_SUPPORT_INDEX`, `ALGOLIA_INDEX_ALLOWLIST`, `DYNAMIC_ROUTING_CATALOG_AGENT_ID`, and `DYNAMIC_ROUTING_SUPPORT_AGENT_ID` into the shared `.env`, preserving the credentials you supplied. Set `PUBLISH_AGENTS=true` or pass `--publish` when the draft is ready to publish.
+3. Run `npm run provision`. It verifies the product index, creates and seeds the support index, and creates or updates one direct Agent Studio agent with a dynamic search tool. Generated IDs and index names are written back to the shared `.env` and to the ignored `provisioned.env` file.
+4. The script writes `ALGOLIA_SUPPORT_INDEX`, `ALGOLIA_INDEX_ALLOWLIST`, and `DYNAMIC_ROUTING_AGENT_ID` into the shared `.env`, preserving the credentials you supplied. Set `PUBLISH_AGENTS=true` or pass `--publish` when the draft is ready to publish.
 5. Start the Next.js app with `npm run dev`, then open `http://localhost:3000`. For a production-style local check, run `npm run build && npm start`.
 6. Choose a trusted context, enter a question, and inspect the route, approved indices, response, and timings.
 
@@ -29,13 +29,13 @@ To update the linked Vercel project after provisioning, export a Vercel access t
 
 - Transport: native Node `fetch`; no Algolia client SDK is used.
 - Provider API: Agent Studio REST API v1, `POST /agent-studio/1/agents/{AGENT_ID}/completions`.
-- Request compatibility: `stream=false&compatibilityMode=ai-sdk-5`; the server selects the Agent Studio agent and sends a direct completion request with `messages`.
+- Request compatibility: `stream=false&compatibilityMode=ai-sdk-5`; the server sends `messages` and the selected scope as `algolia.indices` to one Agent Studio agent.
 - Authentication: the application ID and Search API key remain server-side. The browser receives readiness booleans, route labels, and approved index names only.
 - The executed Algolia search index is extracted from the provider response tool parts. Additional search-tool metadata is shown when it is returned; an absent field is reported as “Not returned by provider.”
 
 The app uses the Next.js App Router and server-side Route Handlers, so it can run locally or on Vercel. Add the same server-only environment variables to the Vercel project; do not expose them as `NEXT_PUBLIC_*` values.
 
-The provisioning script creates two direct Agent Studio agents, each with one statically configured index. The server chooses between those agents from application context, keeping the index boundary on the server. This is the supported direct Agent Studio pattern; it does not use DocSearch. See Algolia’s [Agent Studio API](https://www.algolia.com/doc/rest-api/agent-studio) and [Agent Studio tools guide](https://www.algolia.com/doc/guides/algolia-ai/agent-studio/how-to/tools/overview).
+The provisioning script creates one direct Agent Studio agent with a dynamic `algolia_search_index` tool and an approved list containing the supplied product index plus the generated support index. The server chooses the request scope from application context and sends it as `algolia.indices`; it never trusts a browser-supplied index name. This uses Agent Studio directly and does not use DocSearch. See Algolia’s [Agent Studio API](https://www.algolia.com/doc/rest-api/agent-studio) and [Agent Studio tools guide](https://www.algolia.com/doc/guides/algolia-ai/agent-studio/how-to/tools/overview).
 
 ## Checks
 

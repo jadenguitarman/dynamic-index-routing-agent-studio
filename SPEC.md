@@ -6,12 +6,12 @@ Honor the user contract in `README.md`: application-owned allowlisted routing, v
 
 ## Scope
 
-Build a small local app that accepts trusted context and a user question, maps the context to an approved route and scope-specific Agent Studio agent, and sends a direct completion request.
+Build a small local app that accepts trusted context and a user question, maps the context to an approved route and request-time index scope, and sends a direct completion request to one Agent Studio agent.
 
 ## Required behavior
 
 - Keep the route map and index allowlist on the server.
-- Show the simulated application context, selected route, and configured index scope before completion.
+- Show the simulated application context, selected route, request-time index scope, and same-agent identity before completion.
 - Reject unknown routes and indices.
 - Record route time, completion time, selected scope, actual executed search indices, and available search-tool metadata.
 - Use dedicated test indices or partitions when demonstrating dynamic selection.
@@ -20,12 +20,12 @@ Build a small local app that accepts trusted context and a user question, maps t
 
 - The local server uses the Agent Studio REST API v1 completion endpoint: `POST /agent-studio/1/agents/{AGENT_ID}/completions`.
 - It uses native Node `fetch` rather than a client SDK.
-- Requests use `stream=false&compatibilityMode=ai-sdk-5` and send `messages` to the Agent Studio agent selected by the server.
-- The server route map has two fixed contexts: `catalog` selects a published agent configured with the first allowlisted index and `support` selects a published agent configured with the second. A route is not exposed unless its index exists in the allowlist.
-- The browser may submit a route ID and question, but it cannot submit an index list or agent ID. The server resolves both again and rejects a request that attempts to provide `indices`.
+- Requests use `stream=false&compatibilityMode=ai-sdk-5`, send `messages` to one Agent Studio agent, and send the selected scope in `algolia.indices`.
+- The server route map has two fixed contexts: `catalog` selects the first allowlisted index and `support` selects the second. A route is not exposed unless its index exists in the allowlist.
+- The browser may submit a route ID and question, but it cannot submit an index list or agent ID. The server resolves the route and agent again and rejects a request that attempts to provide top-level `indices`.
 - Provider search-tool metadata is preserved only when the completion response returns a supported metadata field; missing metadata remains explicitly absent.
 
-The provisioning script creates two direct Agent Studio agents, each with one statically configured `algolia_search_index` tool. The application selects the agent from trusted context; the server-side allowlist and agent map remain the application security boundary. The implementation is based on Algolia’s [Agent Studio API](https://www.algolia.com/doc/rest-api/agent-studio) and [tools guide](https://www.algolia.com/doc/guides/algolia-ai/agent-studio/how-to/tools/overview).
+The provisioning script creates one direct Agent Studio agent with one `algolia_search_index` tool in `dynamic` mode and two approved configured indices. The application selects the request scope from trusted context; the server-side allowlist remains the application security boundary. The implementation is based on Algolia’s [Agent Studio API](https://www.algolia.com/doc/rest-api/agent-studio) and [tools guide](https://www.algolia.com/doc/guides/algolia-ai/agent-studio/how-to/tools/overview).
 
 ## Provisioning
 

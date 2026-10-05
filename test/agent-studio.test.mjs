@@ -9,9 +9,10 @@ test("documents the Agent Studio REST v1 completion URL", () => {
   );
 });
 
-test("sends only the supported direct Agent Studio completion fields", () => {
-  const payload = createCompletionPayload("Find a rain jacket");
+test("sends the selected scope inside the Agent Studio algolia request object", () => {
+  const payload = createCompletionPayload("Find a rain jacket", ["catalog_test"]);
   assert.equal(Object.hasOwn(payload, "indices"), false);
+  assert.deepEqual(payload.algolia, { indices: ["catalog_test"] });
   assert.equal(payload.messages[0].role, "user");
   assert.equal(payload.messages[0].parts[0].text, "Find a rain jacket");
 });

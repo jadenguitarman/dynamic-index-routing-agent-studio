@@ -18,8 +18,7 @@ test("builds only routes backed by approved indices", () => {
       label: "Product catalog",
       description: "A product-oriented test index or partition for discovery questions.",
       context: "catalog",
-      agentKey: "catalog",
-      agentLabel: "Product catalog agent",
+      agentLabel: "One dynamic Agent Studio agent",
       contextSignal: "Product page or shopping journey",
       examples: [
         "I'm looking for a jacket for a rainy weekend.",

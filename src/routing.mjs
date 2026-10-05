@@ -4,8 +4,7 @@ const ROUTE_DEFINITIONS = [
     label: "Product catalog",
     description: "A product-oriented test index or partition for discovery questions.",
     context: "catalog",
-    agentKey: "catalog",
-    agentLabel: "Product catalog agent",
+    agentLabel: "One dynamic Agent Studio agent",
     contextSignal: "Product page or shopping journey",
     examples: [
       "I'm looking for a jacket for a rainy weekend.",
@@ -18,8 +17,7 @@ const ROUTE_DEFINITIONS = [
     label: "Support knowledge",
     description: "A support-oriented test index or partition for troubleshooting questions.",
     context: "support",
-    agentKey: "support",
-    agentLabel: "Support knowledge agent",
+    agentLabel: "One dynamic Agent Studio agent",
     contextSignal: "Support page or account question",
     examples: [
       "How do I reset a SAML login?",
@@ -29,7 +27,7 @@ const ROUTE_DEFINITIONS = [
   },
 ];
 
-export function buildRouteMap(approvedIndices, agentIds = {}) {
+export function buildRouteMap(approvedIndices) {
   return ROUTE_DEFINITIONS.flatMap((definition) => {
     const index = approvedIndices[definition.indexPosition];
     if (!index) return [];
@@ -39,18 +37,16 @@ export function buildRouteMap(approvedIndices, agentIds = {}) {
       label: definition.label,
       description: definition.description,
       context: definition.context,
-      agentKey: definition.agentKey,
       agentLabel: definition.agentLabel,
       contextSignal: definition.contextSignal,
       examples: definition.examples,
       indices: [index],
-      ...(agentIds[definition.agentKey] ? { agentId: agentIds[definition.agentKey] } : {}),
     }];
   });
 }
 
-export function resolveRoute(routeId, approvedIndices, agentIds = {}) {
-  const routes = buildRouteMap(approvedIndices, agentIds);
+export function resolveRoute(routeId, approvedIndices) {
+  const routes = buildRouteMap(approvedIndices);
   const route = routes.find((candidate) => candidate.id === routeId);
   if (!route) {
     const error = new Error(`Unknown route: ${routeId || "(empty)"}`);

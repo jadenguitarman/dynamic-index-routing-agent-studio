@@ -11,7 +11,7 @@
       <header class="masthead">
         <div class="eyebrow"><span class="pulse"></span> Interactive implementation demo</div>
         <h1>Route the question<br /><em>before</em> the agent runs.</h1>
-        <p class="lede">The application turns context into a trusted route and a scope-specific Agent Studio agent. The browser can inspect that decision, but it never chooses an index.</p>
+        <p class="lede">The application turns context into a trusted route and a request-time search scope for one Agent Studio agent. The browser can inspect that decision, but it never chooses an index.</p>
         <div class="contract-strip">
           <span>Server-owned route map</span>
           <span>Allowlisted indices</span>
@@ -65,10 +65,10 @@
           <span class="decision-label">Visible before Agent Studio runs</span>
         </div>
         <div id="decision-content" class="decision-content">
-          <div class="decision-placeholder">Choose a context above to see how the application selects a scope-specific Agent Studio agent.</div>
+          <div class="decision-placeholder">Choose a context above to see how the application narrows the search scope for the same Agent Studio agent.</div>
         </div>
         <div class="request-shape">
-          <div><span class="meta-label">Server routing record</span><small>The server chooses the Agent Studio agent. Each agent owns one configured index.</small></div>
+          <div><span class="meta-label">Server routing record</span><small>The server chooses the route and sends only its approved indices in <code>algolia.indices</code>. The Agent Studio agent stays the same.</small></div>
           <pre id="request-payload">Select a context to inspect the server routing record.</pre>
         </div>
       </section>
