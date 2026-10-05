@@ -112,10 +112,12 @@ export async function requestCompletion({ config, question, fetchImpl = fetch, t
     const bodyText = await response.text();
     const body = parseProviderBody(bodyText, response.headers.get("content-type") || "");
     if (!response.ok) {
+      const providerMessage = typeof body === "string" ? body.slice(0, 500) : body?.message || body?.detail || "No provider error detail returned.";
+      console.error("Agent Studio completion failed", { status: response.status, message: providerMessage });
       const error = new Error(`Agent Studio returned HTTP ${response.status}.`);
       error.statusCode = 502;
       error.providerStatus = response.status;
-      error.providerBody = typeof body === "string" ? body.slice(0, 500) : body?.message || body?.detail;
+      error.providerBody = providerMessage;
       throw error;
     }
 
