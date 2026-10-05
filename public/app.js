@@ -12,14 +12,23 @@ const elements = {
   run: document.querySelector("#run"),
   error: document.querySelector("#error"),
   decision: document.querySelector("#decision-content"),
+  examples: document.querySelector("#examples"),
+  requestPayload: document.querySelector("#request-payload"),
   result: document.querySelector("#result"),
   answer: document.querySelector("#answer"),
   evidence: document.querySelector("#evidence"),
+  scopeCheck: document.querySelector("#scope-check"),
   metadata: document.querySelector("#metadata"),
 };
 
 function selectedRoute() {
   return state.routes.find((route) => route.id === state.selectedRouteId) || null;
+}
+
+function formatIndexList(indices) {
+  return indices.length > 0
+    ? indices.map((index) => `<code>${index}</code>`).join(" ")
+    : "<span class=\"muted-value\">No search index</span>";
 }
 
 function renderRoutes() {
@@ -30,7 +39,7 @@ function renderRoutes() {
     button.type = "button";
     button.className = `route-card${route.id === state.selectedRouteId ? " selected" : ""}`;
     button.dataset.route = route.id;
-    button.innerHTML = `<span class="route-radio" aria-hidden="true"></span><span class="route-copy"><strong>${route.label}</strong><small>${route.description}</small></span><span class="route-arrow" aria-hidden="true">↗</span>`;
+    button.innerHTML = `<span class="route-radio" aria-hidden="true"></span><span class="route-copy"><strong>${route.label}</strong><small>${route.contextSignal}</small><span>${route.description}</span></span><span class="route-arrow" aria-hidden="true">↗</span>`;
     button.addEventListener("click", () => {
       state.selectedRouteId = route.id;
       renderRoutes();
@@ -40,20 +49,43 @@ function renderRoutes() {
   }
 }
 
+function renderExamples() {
+  const route = selectedRoute();
+  elements.examples.replaceChildren();
+  if (!route) return;
+
+  for (const example of route.examples || []) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "example-button";
+    button.textContent = example;
+    button.addEventListener("click", () => {
+      elements.question.value = example;
+      elements.question.focus();
+    });
+    elements.examples.append(button);
+  }
+}
+
 function renderDecision() {
   const route = selectedRoute();
   if (!route) {
-    elements.decision.innerHTML = `<div class="decision-placeholder">Choose a context above to inspect the route and approved index set.</div>`;
+    elements.decision.innerHTML = `<div class="decision-placeholder">Choose a context above to see how the application selects a scope-specific Agent Studio agent.</div>`;
+    elements.requestPayload.textContent = "Select a context to inspect the server routing record.";
+    renderExamples();
     elements.run.disabled = true;
     return;
   }
 
-  const multipleRoutes = state.routes.length > 1;
   elements.decision.innerHTML = `
-    <div class="decision-route"><span class="decision-icon">${route.id === "catalog" ? "C" : "S"}</span><div><span class="meta-label">Selected route</span><strong>${route.label}</strong><small>${route.description}</small></div></div>
+    <div class="decision-step"><span class="meta-label">Context signal</span><strong>${route.contextSignal}</strong><small>${route.description}</small></div>
     <div class="decision-arrow" aria-hidden="true">→</div>
-    <div class="index-set"><span class="meta-label">Approved index set</span><div class="index-list">${route.indices.map((index) => `<code>${index}</code>`).join("")}</div><small>${multipleRoutes ? "Resolved from the server-side allowlist for this context." : "One approved index is available; this shows request construction, not dynamic selection."}</small></div>
+    <div class="decision-step"><span class="meta-label">Route alias</span><strong><code>${route.id}</code></strong><small>Readable application context, not an index name.</small></div>
+    <div class="decision-arrow" aria-hidden="true">→</div>
+    <div class="decision-step"><span class="meta-label">Configured scope</span><div class="index-list">${formatIndexList(route.indices)}</div><small>Owned by the selected Agent Studio agent.</small></div>
   `;
+  elements.requestPayload.textContent = JSON.stringify({ route: route.id, agent: route.agentLabel, configuredScope: route.indices }, null, 2);
+  renderExamples();
   elements.run.disabled = false;
 }
 
@@ -63,7 +95,10 @@ function setError(message = "") {
 }
 
 function renderReadiness(data) {
-  const ready = Object.values(data.readiness).every(Boolean);
+  const ready = data.readiness.applicationId
+    && data.readiness.apiKey
+    && data.readiness.indices
+    && Object.values(data.readiness.agents || {}).every(Boolean);
   elements.status.textContent = ready ? "Ready to run" : "Config needed";
   elements.status.classList.toggle("warning", !ready);
 }
@@ -72,15 +107,33 @@ function formatMetadata(metadata) {
   return metadata ? JSON.stringify(metadata, null, 2) : "Not returned by provider.";
 }
 
+function renderScopeCheck(selectedIndices, executedIndices) {
+  const unexpected = executedIndices.filter((index) => !selectedIndices.includes(index));
+  elements.scopeCheck.hidden = false;
+  elements.scopeCheck.className = `scope-check ${unexpected.length > 0 ? "mismatch" : "matched"}`;
+  if (unexpected.length > 0) {
+    elements.scopeCheck.innerHTML = `<strong>Scope mismatch detected</strong><span>Agent Studio searched ${formatIndexList(unexpected)} even though the server requested a narrower scope.</span>`;
+    return;
+  }
+  if (executedIndices.length === 0) {
+    elements.scopeCheck.innerHTML = "<strong>No search tool call reported</strong><span>The agent answered without a reported Algolia search.</span>";
+    return;
+  }
+  elements.scopeCheck.innerHTML = `<strong>Scope matched</strong><span>Agent Studio searched only ${formatIndexList(executedIndices)} from the selected agent's configured scope.</span>`;
+}
+
 function renderResult(data) {
   elements.result.hidden = false;
   elements.answer.textContent = data.answer;
+  const executedSearchIndices = Array.isArray(data.executedSearchIndices) ? data.executedSearchIndices : [];
   elements.evidence.innerHTML = `
     <div><dt>Route time</dt><dd>${data.timings.routeMs} ms</dd></div>
     <div><dt>Completion time</dt><dd>${data.timings.completionMs} ms</dd></div>
-    <div><dt>Selected indices</dt><dd>${data.selectedIndices.map((index) => `<code>${index}</code>`).join(" ")}</dd></div>
+    <div><dt>Configured scope</dt><dd>${formatIndexList(data.selectedIndices)}</dd></div>
+    <div><dt>Agent Studio searched</dt><dd>${formatIndexList(executedSearchIndices)}</dd></div>
     <div><dt>API</dt><dd>Agent Studio REST v${data.provider.apiVersion}</dd></div>
   `;
+  renderScopeCheck(data.selectedIndices, executedSearchIndices);
   elements.metadata.textContent = formatMetadata(data.searchToolMetadata);
   elements.result.scrollIntoView({ behavior: "smooth", block: "start" });
 }

@@ -6,7 +6,7 @@ export function completionUrl(config) {
   return `https://${applicationId}.algolia.net/agent-studio/1/agents/${agentId}/completions?stream=false&compatibilityMode=ai-sdk-5`;
 }
 
-export function createCompletionPayload(question, indices) {
+export function createCompletionPayload(question) {
   return {
     id: `alg_cnv_${randomUUID()}`,
     messages: [{
@@ -14,7 +14,6 @@ export function createCompletionPayload(question, indices) {
       role: "user",
       parts: [{ type: "text", text: question }],
     }],
-    indices,
   };
 }
 
@@ -72,6 +71,19 @@ export function extractSearchToolMetadata(payload) {
   return candidates.map(metadataCandidate).find(Boolean) || null;
 }
 
+export function extractExecutedSearchIndices(payload) {
+  if (!payload || typeof payload !== "object" || !Array.isArray(payload.parts)) return [];
+
+  const prefix = "tool-algolia_search_index_";
+  return [...new Set(
+    payload.parts
+      .map((part) => part?.type)
+      .filter((type) => typeof type === "string" && type.startsWith(prefix))
+      .map((type) => type.slice(prefix.length))
+      .filter(Boolean),
+  )];
+}
+
 export function parseProviderBody(text, contentType = "") {
   if (contentType.includes("application/json")) return JSON.parse(text);
   try {
@@ -81,7 +93,7 @@ export function parseProviderBody(text, contentType = "") {
   }
 }
 
-export async function requestCompletion({ config, question, indices, fetchImpl = fetch, timeoutMs = 30_000 }) {
+export async function requestCompletion({ config, question, fetchImpl = fetch, timeoutMs = 30_000 }) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -93,7 +105,7 @@ export async function requestCompletion({ config, question, indices, fetchImpl =
         "X-Algolia-Application-Id": config.applicationId,
         "X-Algolia-API-Key": config.apiKey,
       },
-      body: JSON.stringify(createCompletionPayload(question, indices)),
+      body: JSON.stringify(createCompletionPayload(question)),
       signal: controller.signal,
     });
 
@@ -110,6 +122,7 @@ export async function requestCompletion({ config, question, indices, fetchImpl =
     return {
       text: extractCompletionText(body),
       searchToolMetadata: extractSearchToolMetadata(body),
+      executedSearchIndices: extractExecutedSearchIndices(body),
       providerResponse: body,
     };
   } finally {

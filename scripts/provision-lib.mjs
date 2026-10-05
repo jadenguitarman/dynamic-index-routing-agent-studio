@@ -194,7 +194,7 @@ export function agentSpec({ name, description, instructions, providerId, model, 
 
 export async function provisionAgent({ base, applicationId, apiKey, agentId, spec, publish, dryRun }) {
   if (dryRun) {
-    console.log(`${agentId ? "Would update" : "Would create"} Agent Studio agent "${spec.name}" with ${spec.tools[0].indices.length} configured index(es).`);
+    console.log(`${agentId ? "Would update" : "Would create"} Agent Studio agent "${spec.name}" with ${spec.tools[0].indices.length} statically configured index(es).`);
     if (publish) console.log("Would publish the agent after the write.");
     return { id: agentId || "<created-agent-id>" };
   }

@@ -41,14 +41,18 @@ export function loadConfig({ env = process.env, dotenvPath } = {}) {
 
   const applicationId = (env.ALGOLIA_APPLICATION_ID || "").trim();
   const apiKey = (env.ALGOLIA_AGENT_STUDIO_API_KEY || "").trim();
-  const agentId = (env.DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID || "").trim();
+  const legacyAgentId = (env.DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID || "").trim();
+  const agentIds = {
+    catalog: (env.DYNAMIC_ROUTING_CATALOG_AGENT_ID || legacyAgentId).trim(),
+    support: (env.DYNAMIC_ROUTING_SUPPORT_AGENT_ID || "").trim(),
+  };
   const approvedIndices = parseIndexAllowlist(env.ALGOLIA_INDEX_ALLOWLIST || "");
   const port = Number.parseInt(env.PORT || "3000", 10);
 
   return {
     applicationId,
     apiKey,
-    agentId,
+    agentIds,
     approvedIndices,
     port: Number.isInteger(port) && port > 0 ? port : 3000,
     provider: {
@@ -66,7 +70,10 @@ export function publicConfig(config) {
     readiness: {
       applicationId: Boolean(config.applicationId),
       apiKey: Boolean(config.apiKey),
-      agentId: Boolean(config.agentId),
+      agents: {
+        catalog: Boolean(config.agentIds.catalog),
+        support: Boolean(config.agentIds.support),
+      },
       indices: config.approvedIndices.length > 0,
     },
   };
@@ -76,7 +83,8 @@ export function assertCompletionConfig(config) {
   const missing = [];
   if (!config.applicationId) missing.push("ALGOLIA_APPLICATION_ID");
   if (!config.apiKey) missing.push("ALGOLIA_AGENT_STUDIO_API_KEY");
-  if (!config.agentId) missing.push("DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID");
+  if (!config.agentIds.catalog) missing.push("DYNAMIC_ROUTING_CATALOG_AGENT_ID");
+  if (!config.agentIds.support) missing.push("DYNAMIC_ROUTING_SUPPORT_AGENT_ID");
   if (config.approvedIndices.length === 0) missing.push("ALGOLIA_INDEX_ALLOWLIST");
   if (missing.length > 0) {
     const error = new Error(`Missing required configuration: ${missing.join(", ")}`);

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { completionUrl, createCompletionPayload, extractCompletionText, extractSearchToolMetadata } from "../src/agent-studio.mjs";
+import { completionUrl, createCompletionPayload, extractCompletionText, extractExecutedSearchIndices, extractSearchToolMetadata } from "../src/agent-studio.mjs";
 
 test("documents the Agent Studio REST v1 completion URL", () => {
   assert.equal(
@@ -9,9 +9,9 @@ test("documents the Agent Studio REST v1 completion URL", () => {
   );
 });
 
-test("puts server-selected indices in the direct completion payload", () => {
-  const payload = createCompletionPayload("Find a rain jacket", ["catalog_test"]);
-  assert.deepEqual(payload.indices, ["catalog_test"]);
+test("sends only the supported direct Agent Studio completion fields", () => {
+  const payload = createCompletionPayload("Find a rain jacket");
+  assert.equal(Object.hasOwn(payload, "indices"), false);
   assert.equal(payload.messages[0].role, "user");
   assert.equal(payload.messages[0].parts[0].text, "Find a rain jacket");
 });
@@ -23,4 +23,19 @@ test("extracts text and search-tool metadata without requiring one response shap
   };
   assert.equal(extractCompletionText(payload), "A grounded answer.");
   assert.deepEqual(extractSearchToolMetadata(payload), { indices: ["catalog_test"], hits: 3 });
+});
+
+test("extracts the actual Algolia search indices from Agent Studio tool parts", () => {
+  assert.deepEqual(
+    extractExecutedSearchIndices({
+      parts: [
+        { type: "step-start" },
+        { type: "tool-algolia_search_index_catalog_test" },
+        { type: "tool-algolia_search_index_catalog_test" },
+        { type: "tool-algolia_search_index_support_test" },
+      ],
+    }),
+    ["catalog_test", "support_test"],
+  );
+  assert.deepEqual(extractExecutedSearchIndices({ parts: [{ type: "text", text: "No search needed." }] }), []);
 });

@@ -4,6 +4,13 @@ const ROUTE_DEFINITIONS = [
     label: "Product catalog",
     description: "A product-oriented test index or partition for discovery questions.",
     context: "catalog",
+    agentKey: "catalog",
+    agentLabel: "Product catalog agent",
+    contextSignal: "Product page or shopping journey",
+    examples: [
+      "I'm looking for a jacket for a rainy weekend.",
+      "Which products would work for a small home office?",
+    ],
     indexPosition: 0,
   },
   {
@@ -11,11 +18,18 @@ const ROUTE_DEFINITIONS = [
     label: "Support knowledge",
     description: "A support-oriented test index or partition for troubleshooting questions.",
     context: "support",
+    agentKey: "support",
+    agentLabel: "Support knowledge agent",
+    contextSignal: "Support page or account question",
+    examples: [
+      "How do I reset a SAML login?",
+      "How do I change my plan?",
+    ],
     indexPosition: 1,
   },
 ];
 
-export function buildRouteMap(approvedIndices) {
+export function buildRouteMap(approvedIndices, agentIds = {}) {
   return ROUTE_DEFINITIONS.flatMap((definition) => {
     const index = approvedIndices[definition.indexPosition];
     if (!index) return [];
@@ -25,13 +39,18 @@ export function buildRouteMap(approvedIndices) {
       label: definition.label,
       description: definition.description,
       context: definition.context,
+      agentKey: definition.agentKey,
+      agentLabel: definition.agentLabel,
+      contextSignal: definition.contextSignal,
+      examples: definition.examples,
       indices: [index],
+      ...(agentIds[definition.agentKey] ? { agentId: agentIds[definition.agentKey] } : {}),
     }];
   });
 }
 
-export function resolveRoute(routeId, approvedIndices) {
-  const routes = buildRouteMap(approvedIndices);
+export function resolveRoute(routeId, approvedIndices, agentIds = {}) {
+  const routes = buildRouteMap(approvedIndices, agentIds);
   const route = routes.find((candidate) => candidate.id === routeId);
   if (!route) {
     const error = new Error(`Unknown route: ${routeId || "(empty)"}`);
