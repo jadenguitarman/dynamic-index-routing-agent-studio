@@ -98,7 +98,6 @@ export async function requestCompletion({ config, question, fetchImpl = fetch, t
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    console.error("Agent Studio completion target", { agentIdType: typeof config.agentId, agentIdLength: config.agentId?.length || 0, agentIdPrefix: config.agentId?.slice?.(0, 8) || "", agentIdSuffix: config.agentId?.slice?.(-4) || "" });
     const response = await fetchImpl(completionUrl(config), {
       method: "POST",
       headers: {
@@ -114,7 +113,6 @@ export async function requestCompletion({ config, question, fetchImpl = fetch, t
     const body = parseProviderBody(bodyText, response.headers.get("content-type") || "");
     if (!response.ok) {
       const providerMessage = typeof body === "string" ? body.slice(0, 500) : body?.message || body?.detail || "No provider error detail returned.";
-      console.error("Agent Studio completion failed", { status: response.status, message: providerMessage });
       const error = new Error(`Agent Studio returned HTTP ${response.status}.`);
       error.statusCode = 502;
       error.providerStatus = response.status;

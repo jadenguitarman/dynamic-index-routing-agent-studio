@@ -74,19 +74,22 @@ async function handleApi(request, response, url) {
     }
 
     const question = validateQuestion(body.question);
-    const route = resolveRoute(body.route, config.approvedIndices);
+    const route = resolveRoute(body.route, config.approvedIndices, config.agentIds);
     assertApprovedIndices(route.indices, config.approvedIndices);
+    const agentId = config.agentIds[route.agentKey];
+    if (!agentId) throw Object.assign(new Error(`No Agent Studio agent is configured for the ${route.id} route.`), { statusCode: 503 });
     const routeMs = Math.round(performance.now() - startedAt);
 
     assertCompletionConfig(config);
     const completionStartedAt = performance.now();
-    const completion = await requestCompletion({ config, question, indices: route.indices });
+    const completion = await requestCompletion({ config: { ...config, agentId }, question });
     const completionMs = Math.round(performance.now() - completionStartedAt);
 
     sendJson(response, 200, {
-      route,
+      route: { ...route, agentId: undefined },
       timings: { routeMs, completionMs, totalMs: Math.round(performance.now() - startedAt) },
       selectedIndices: route.indices,
+      executedSearchIndices: completion.executedSearchIndices,
       searchToolMetadata: completion.searchToolMetadata,
       answer: completion.text || "Agent Studio returned no text in the response payload.",
       provider: config.provider,

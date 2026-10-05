@@ -27,7 +27,6 @@ export async function POST(request) {
     const route = resolveRoute(body.route, config.approvedIndices, config.agentIds);
     assertApprovedIndices(route.indices, config.approvedIndices);
     const agentId = config.agentIds[route.agentKey];
-    console.error("Agent Studio route resolution", { routeId: route.id, agentKey: route.agentKey, configuredAgentKeys: Object.keys(config.agentIds), hasAgentId: Boolean(agentId), agentIdLength: agentId?.length || 0 });
     if (!agentId) throw Object.assign(new Error(`No Agent Studio agent is configured for the ${route.id} route.`), { statusCode: 503 });
     const routeMs = Math.round(performance.now() - startedAt);
     assertCompletionConfig(config);
