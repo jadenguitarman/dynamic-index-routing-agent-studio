@@ -2,7 +2,7 @@ const state = {
   routes: [],
   selectedRouteId: "",
   publicConfig: null,
-  hasRun: false,
+  isRunning: false,
 };
 
 const elements = {
@@ -11,7 +11,6 @@ const elements = {
   status: document.querySelector("#config-status"),
   question: document.querySelector("#question"),
   run: document.querySelector("#run"),
-  restart: document.querySelector("#restart"),
   error: document.querySelector("#error"),
   decision: document.querySelector("#decision-content"),
   examples: document.querySelector("#examples"),
@@ -40,13 +39,14 @@ function renderRoutes() {
   for (const route of state.routes) {
     const button = document.createElement("button");
     button.type = "button";
-    button.disabled = state.hasRun;
+    button.disabled = state.isRunning;
     button.className = `route-card${route.id === state.selectedRouteId ? " selected" : ""}`;
     button.dataset.route = route.id;
     button.innerHTML = `<span class="route-radio" aria-hidden="true"></span><span class="route-copy"><strong>${route.label}</strong><small>${route.contextSignal}</small><span>${route.description}</span></span><span class="route-arrow" aria-hidden="true">↗</span>`;
     button.addEventListener("click", () => {
-      if (state.hasRun) return;
+      if (state.isRunning) return;
       state.selectedRouteId = route.id;
+      clearResult();
       renderRoutes();
       renderDecision();
     });
@@ -62,11 +62,11 @@ function renderExamples() {
   for (const example of route.examples || []) {
     const button = document.createElement("button");
     button.type = "button";
-    button.disabled = state.hasRun;
+    button.disabled = state.isRunning;
     button.className = "example-button";
     button.textContent = example;
     button.addEventListener("click", () => {
-      if (state.hasRun) return;
+      if (state.isRunning) return;
       elements.question.value = example;
       elements.question.focus();
     });
@@ -93,7 +93,7 @@ function renderDecision() {
   `;
   elements.requestPayload.textContent = JSON.stringify({ route: route.id, agent: route.agentLabel, algolia: { indices: route.indices } }, null, 2);
   renderExamples();
-  elements.run.disabled = state.hasRun;
+  elements.run.disabled = state.isRunning;
 }
 
 function setError(message = "") {
@@ -112,6 +112,15 @@ function renderReadiness(data) {
 
 function formatMetadata(metadata) {
   return metadata ? JSON.stringify(metadata, null, 2) : "Not returned by provider.";
+}
+
+function clearResult() {
+  elements.answerCard.hidden = true;
+  elements.evidenceSection.hidden = true;
+  elements.answer.textContent = "";
+  elements.evidence.replaceChildren();
+  elements.scopeCheck.hidden = true;
+  elements.metadata.textContent = "Not returned by provider.";
 }
 
 function comparableIndexName(index) {
@@ -135,7 +144,6 @@ function renderScopeCheck(selectedIndices, executedIndices) {
 }
 
 function renderResult(data) {
-  state.hasRun = true;
   elements.answerCard.hidden = false;
   elements.answer.textContent = data.answer;
   const executedSearchIndices = Array.isArray(data.executedSearchIndices) ? data.executedSearchIndices : [];
@@ -149,11 +157,6 @@ function renderResult(data) {
   renderScopeCheck(data.selectedIndices, executedSearchIndices);
   elements.metadata.textContent = formatMetadata(data.searchToolMetadata);
   elements.evidenceSection.hidden = false;
-  renderRoutes();
-  renderExamples();
-  elements.question.disabled = true;
-  elements.run.disabled = true;
-  elements.run.textContent = "Turn complete";
   elements.evidenceSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -177,7 +180,9 @@ async function loadRoutes() {
 
 async function runCompletion() {
   const route = selectedRoute();
-  if (!route || state.hasRun) return;
+  if (!route || state.isRunning) return;
+  state.isRunning = true;
+  clearResult();
   setError();
   elements.run.disabled = true;
   elements.run.classList.add("loading");
@@ -194,12 +199,14 @@ async function runCompletion() {
   } catch (error) {
     setError(error.message);
   } finally {
-    elements.run.disabled = state.hasRun || !selectedRoute();
+    state.isRunning = false;
+    renderRoutes();
+    renderExamples();
+    renderDecision();
     elements.run.classList.remove("loading");
-    if (!state.hasRun) elements.run.textContent = "Run completion";
+    elements.run.textContent = "Run completion";
   }
 }
 
 elements.run.addEventListener("click", runCompletion);
-elements.restart.addEventListener("click", () => window.location.reload());
 loadRoutes();

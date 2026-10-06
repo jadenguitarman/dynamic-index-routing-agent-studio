@@ -13,7 +13,7 @@ Build a small local app that accepts trusted context and a user question, maps t
 - Keep the route map and index allowlist on the server.
 - Show the simulated application context, selected route, request-time index scope, and same-agent identity before completion.
 - Present the context picker and one-turn chat side by side on desktop. The hero is exactly one viewport tall, including its box-model padding, at both desktop and mobile widths; the routing decision and provider evidence appear below it.
-- Limit the demo to one completion turn and provide a reload action to start over.
+- Treat each completion request as a fresh one-turn conversation. Allow the user to select another context and submit again without reloading the page.
 - Reject unknown routes and indices.
 - Record route time, completion time, selected scope, actual executed search indices, and available search-tool metadata.
 - Use dedicated test indices or partitions when demonstrating dynamic selection.

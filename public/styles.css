@@ -63,8 +63,6 @@ button#run { border: 0; border-radius: 99px; background: var(--ink); color: whit
 button#run:disabled { cursor: not-allowed; opacity: .42; }
 button#run:not(:disabled):hover { background: var(--lime-deep); }
 button#run.loading { display: inline-flex; gap: 8px; align-items: center; }
-.restart-button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; padding: 5px 0; text-decoration: underline; text-underline-offset: 3px; }
-.restart-button:hover, .restart-button:focus-visible { color: var(--ink); }
 .spinner { width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 99px; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error-message { color: var(--red); background: #fff0ed; border-radius: 9px; padding: 10px 12px; margin: 15px 0 0; font-size: 13px; line-height: 1.45; }
