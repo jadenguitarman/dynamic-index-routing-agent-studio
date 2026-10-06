@@ -67,6 +67,8 @@ if (options.syncVercel && !options.dryRun && !provisionedAgentId) throw new Erro
 if (options.syncVercel) await syncVercelEnv({
   ALGOLIA_APPLICATION_ID: applicationId,
   ALGOLIA_AGENT_STUDIO_API_KEY: options.dryRun ? "<runtime-key>" : required("ALGOLIA_AGENT_STUDIO_API_KEY"),
+  ALGOLIA_PRODUCT_INDEX: productIndex,
+  ALGOLIA_SUPPORT_INDEX: supportIndex,
   ALGOLIA_INDEX_ALLOWLIST: allowlist.join(","),
   DYNAMIC_ROUTING_AGENT_ID: options.dryRun ? "<created-dynamic-agent-id>" : provisionedAgentId,
 }, { dryRun: options.dryRun });

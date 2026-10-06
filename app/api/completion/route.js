@@ -24,6 +24,8 @@ export async function POST(request) {
     if (Object.prototype.hasOwnProperty.call(body, "indices")) throw Object.assign(new Error("Indices are selected by the server and must not be provided by the browser."), { statusCode: 400 });
     const config = loadConfig();
     const question = validateQuestion(body.question);
+    // The browser supplies context, not an index. The server resolves that
+    // context and passes the resulting scope to the same Agent Studio agent.
     const route = resolveRoute(body.route, config.approvedIndices);
     assertApprovedIndices(route.indices, config.approvedIndices);
     if (!config.agentId) throw Object.assign(new Error("No dynamic Agent Studio agent is configured."), { statusCode: 503 });

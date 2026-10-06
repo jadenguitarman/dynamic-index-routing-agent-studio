@@ -74,6 +74,8 @@ async function handleApi(request, response, url) {
     }
 
     const question = validateQuestion(body.question);
+    // Keep the agent fixed while changing only the approved request scope.
+    // The browser never gets to choose the underlying index directly.
     const route = resolveRoute(body.route, config.approvedIndices);
     assertApprovedIndices(route.indices, config.approvedIndices);
     if (!config.agentId) throw Object.assign(new Error("No dynamic Agent Studio agent is configured."), { statusCode: 503 });

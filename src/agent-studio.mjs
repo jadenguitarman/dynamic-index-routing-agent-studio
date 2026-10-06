@@ -11,6 +11,8 @@ export function createCompletionPayload(question, indices) {
     throw new Error("Agent Studio completion requests need at least one selected index.");
   }
 
+  // The agent ID stays fixed; only this request's approved search scope changes.
+  // That is the dynamic-routing behavior the demo is meant to make visible.
   return {
     id: `alg_cnv_${randomUUID()}`,
     messages: [{

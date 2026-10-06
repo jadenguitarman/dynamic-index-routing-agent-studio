@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import Script from "next/script";
 
 function pageBody() {
   const html = readFileSync(join(process.cwd(), "public", "index.html"), "utf8");
@@ -10,7 +11,7 @@ export default function Page() {
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: pageBody() }} />
-      <script type="module" src="/app.js" />
+      <Script src="/app.js" type="module" strategy="afterInteractive" />
     </>
   );
 }

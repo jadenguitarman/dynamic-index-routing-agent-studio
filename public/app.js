@@ -2,6 +2,7 @@ const state = {
   routes: [],
   selectedRouteId: "",
   publicConfig: null,
+  hasRun: false,
 };
 
 const elements = {
@@ -10,15 +11,17 @@ const elements = {
   status: document.querySelector("#config-status"),
   question: document.querySelector("#question"),
   run: document.querySelector("#run"),
+  restart: document.querySelector("#restart"),
   error: document.querySelector("#error"),
   decision: document.querySelector("#decision-content"),
   examples: document.querySelector("#examples"),
   requestPayload: document.querySelector("#request-payload"),
-  result: document.querySelector("#result"),
+  answerCard: document.querySelector("#answer-card"),
   answer: document.querySelector("#answer"),
   evidence: document.querySelector("#evidence"),
   scopeCheck: document.querySelector("#scope-check"),
   metadata: document.querySelector("#metadata"),
+  evidenceSection: document.querySelector("#evidence-section"),
 };
 
 function selectedRoute() {
@@ -37,10 +40,12 @@ function renderRoutes() {
   for (const route of state.routes) {
     const button = document.createElement("button");
     button.type = "button";
+    button.disabled = state.hasRun;
     button.className = `route-card${route.id === state.selectedRouteId ? " selected" : ""}`;
     button.dataset.route = route.id;
     button.innerHTML = `<span class="route-radio" aria-hidden="true"></span><span class="route-copy"><strong>${route.label}</strong><small>${route.contextSignal}</small><span>${route.description}</span></span><span class="route-arrow" aria-hidden="true">↗</span>`;
     button.addEventListener("click", () => {
+      if (state.hasRun) return;
       state.selectedRouteId = route.id;
       renderRoutes();
       renderDecision();
@@ -57,9 +62,11 @@ function renderExamples() {
   for (const example of route.examples || []) {
     const button = document.createElement("button");
     button.type = "button";
+    button.disabled = state.hasRun;
     button.className = "example-button";
     button.textContent = example;
     button.addEventListener("click", () => {
+      if (state.hasRun) return;
       elements.question.value = example;
       elements.question.focus();
     });
@@ -86,7 +93,7 @@ function renderDecision() {
   `;
   elements.requestPayload.textContent = JSON.stringify({ route: route.id, agent: route.agentLabel, algolia: { indices: route.indices } }, null, 2);
   renderExamples();
-  elements.run.disabled = false;
+  elements.run.disabled = state.hasRun;
 }
 
 function setError(message = "") {
@@ -128,19 +135,26 @@ function renderScopeCheck(selectedIndices, executedIndices) {
 }
 
 function renderResult(data) {
-  elements.result.hidden = false;
+  state.hasRun = true;
+  elements.answerCard.hidden = false;
   elements.answer.textContent = data.answer;
   const executedSearchIndices = Array.isArray(data.executedSearchIndices) ? data.executedSearchIndices : [];
   elements.evidence.innerHTML = `
     <div><dt>Route time</dt><dd>${data.timings.routeMs} ms</dd></div>
     <div><dt>Completion time</dt><dd>${data.timings.completionMs} ms</dd></div>
-    <div><dt>Configured scope</dt><dd>${formatIndexList(data.selectedIndices)}</dd></div>
+    <div><dt>Request scope</dt><dd>${formatIndexList(data.selectedIndices)}</dd></div>
     <div><dt>Agent Studio searched</dt><dd>${formatIndexList(executedSearchIndices)}</dd></div>
     <div><dt>API</dt><dd>Agent Studio REST v${data.provider.apiVersion}</dd></div>
   `;
   renderScopeCheck(data.selectedIndices, executedSearchIndices);
   elements.metadata.textContent = formatMetadata(data.searchToolMetadata);
-  elements.result.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.evidenceSection.hidden = false;
+  renderRoutes();
+  renderExamples();
+  elements.question.disabled = true;
+  elements.run.disabled = true;
+  elements.run.textContent = "Turn complete";
+  elements.evidenceSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function loadRoutes() {
@@ -163,7 +177,7 @@ async function loadRoutes() {
 
 async function runCompletion() {
   const route = selectedRoute();
-  if (!route) return;
+  if (!route || state.hasRun) return;
   setError();
   elements.run.disabled = true;
   elements.run.classList.add("loading");
@@ -180,11 +194,12 @@ async function runCompletion() {
   } catch (error) {
     setError(error.message);
   } finally {
-    elements.run.disabled = false;
+    elements.run.disabled = state.hasRun || !selectedRoute();
     elements.run.classList.remove("loading");
-    elements.run.innerHTML = "Run completion <span aria-hidden=\"true\">↗</span>";
+    if (!state.hasRun) elements.run.textContent = "Run completion";
   }
 }
 
 elements.run.addEventListener("click", runCompletion);
+elements.restart.addEventListener("click", () => window.location.reload());
 loadRoutes();

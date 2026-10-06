@@ -42,7 +42,12 @@ export function loadConfig({ env = process.env, dotenvPath } = {}) {
   const applicationId = (env.ALGOLIA_APPLICATION_ID || "").trim();
   const apiKey = (env.ALGOLIA_AGENT_STUDIO_API_KEY || "").trim();
   const agentId = (env.DYNAMIC_ROUTING_AGENT_ID || env.DYNAMIC_ROUTING_CATALOG_AGENT_ID || env.DYNAMIC_ROUTING_AGENT_STUDIO_AGENT_ID || "").trim();
-  const approvedIndices = parseIndexAllowlist(env.ALGOLIA_INDEX_ALLOWLIST || "");
+  // Provisioning writes the explicit allowlist. The named values are a safe
+  // deployment fallback so a Vercel environment update cannot leave the demo
+  // looking empty while the same server-owned route map is still intact.
+  const allowlistValue = env.ALGOLIA_INDEX_ALLOWLIST
+    || [env.ALGOLIA_PRODUCT_INDEX, env.ALGOLIA_SUPPORT_INDEX].filter(Boolean).join(",");
+  const approvedIndices = parseIndexAllowlist(allowlistValue);
   const port = Number.parseInt(env.PORT || "3000", 10);
 
   return {

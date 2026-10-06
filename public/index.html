@@ -8,61 +8,55 @@
   </head>
   <body>
     <main class="shell">
-      <header class="masthead">
-        <div class="eyebrow"><span class="pulse"></span> Interactive implementation demo</div>
-        <h1>Route the question<br /><em>before</em> the agent runs.</h1>
-        <p class="lede">The application turns context into a trusted route and a request-time search scope for one Agent Studio agent. The browser can inspect that decision, but it never chooses an index.</p>
-        <div class="contract-strip">
-          <span>Server-owned route map</span>
-          <span>Allowlisted indices</span>
-          <span>Agent Studio REST API v1</span>
-        </div>
-      </header>
-
-      <section class="workspace" aria-label="Routing demo">
-        <div class="panel route-panel">
+      <section class="demo-hero" aria-label="Routing demo">
+        <aside class="panel route-panel">
           <div class="panel-heading">
             <div>
-              <p class="section-kicker">01 / trusted context</p>
-              <h2>Start with application context</h2>
+              <p class="section-kicker">Trusted context</p>
+              <h1>Route the question<br /><em>before</em> the agent runs.</h1>
             </div>
             <span id="config-status" class="status-chip">Loading…</span>
           </div>
-          <p class="panel-intro">These are simulated signals from the application, such as the current page or user journey. They are not index names.</p>
+          <p class="panel-intro">Choose the context your application already knows. The server turns it into a route; the browser never chooses an index.</p>
           <div id="routes" class="route-list" aria-live="polite"></div>
           <div id="route-empty" class="empty-state" hidden>
             <strong>No approved indices configured.</strong>
             <span>Add dedicated test indices or partitions to <code>.env</code> before running a completion.</span>
           </div>
-        </div>
+          <p class="context-note">These are simulated signals from the application, not index names.</p>
+        </aside>
 
-        <div class="panel request-panel">
+        <section class="panel request-panel">
           <div class="panel-heading">
             <div>
-              <p class="section-kicker">02 / request</p>
-              <h2>Ask the selected agent</h2>
+              <p class="section-kicker">One conversation turn</p>
+              <h2>Ask the same agent</h2>
             </div>
-            <span class="rest-badge">POST /completions</span>
+            <button id="restart" class="restart-button" type="button">Reload to start over</button>
           </div>
           <label class="question-label" for="question">Question</label>
           <textarea id="question" rows="5" maxlength="4000" placeholder="Which products are best for a rainy weekend?">Which products are best for a rainy weekend?</textarea>
-          <div class="example-heading"><span class="meta-label">Try the context</span><span class="hint">Use the same question in both contexts to compare the scope.</span></div>
+          <div class="example-heading"><span class="meta-label">Try a question</span><span class="hint">Run one turn, then reload to try another context.</span></div>
           <div id="examples" class="example-list" aria-label="Suggested questions"></div>
           <div class="request-footer">
             <span class="hint">The route is resolved again on the server.</span>
-            <button id="run" type="button" disabled>Run completion <span aria-hidden="true">↗</span></button>
+            <button id="run" type="button" disabled>Run completion</button>
           </div>
           <p id="error" class="error-message" role="alert" hidden></p>
-        </div>
+          <div id="answer-card" class="chat-response" hidden>
+            <div class="response-heading"><span class="meta-label">Response</span><span id="response-state" class="status-chip success">Complete</span></div>
+            <div id="answer" class="answer"></div>
+          </div>
+        </section>
       </section>
 
-      <section class="decision panel" aria-live="polite">
+      <section id="how-it-works" class="how-it-works panel" aria-live="polite">
         <div class="panel-heading">
           <div>
-            <p class="section-kicker">03 / pre-request decision</p>
+            <p class="section-kicker">How it works</p>
             <h2>See the routing decision</h2>
           </div>
-          <span class="decision-label">Visible before Agent Studio runs</span>
+          <span class="decision-label">Visible before the request runs</span>
         </div>
         <div id="decision-content" class="decision-content">
           <div class="decision-placeholder">Choose a context above to see how the application narrows the search scope for the same Agent Studio agent.</div>
@@ -71,31 +65,27 @@
           <div><span class="meta-label">Server routing record</span><small>The server chooses the route and sends only its approved indices in <code>algolia.indices</code>. The Agent Studio agent stays the same.</small></div>
           <pre id="request-payload">Select a context to inspect the server routing record.</pre>
         </div>
-      </section>
-
-      <section id="result" class="result-grid" hidden>
-        <div class="panel answer-panel">
-          <div class="panel-heading">
+        <div id="evidence-section" class="evidence-section" hidden>
+          <div class="evidence-heading">
             <div>
-              <p class="section-kicker">04 / response</p>
-              <h2>Agent response</h2>
+              <p class="section-kicker">Provider evidence</p>
+              <h2>What the request did</h2>
             </div>
-            <span id="response-state" class="status-chip success">Complete</span>
+            <span class="hint">Returned by Agent Studio when available.</span>
           </div>
-          <div id="answer" class="answer"></div>
-        </div>
-        <div class="panel evidence-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker">request record</p>
-              <h2>Evidence</h2>
+          <div class="evidence-grid">
+            <div class="panel evidence-panel">
+              <dl id="evidence" class="evidence"></dl>
+              <div id="scope-check" class="scope-check" hidden></div>
+            </div>
+            <div class="panel evidence-panel">
+              <div class="metadata-block">
+                <span class="meta-label">Provider metadata, when returned</span>
+                <pre id="metadata">Not returned by provider.</pre>
+              </div>
             </div>
           </div>
-          <dl id="evidence" class="evidence"></dl>
-          <div class="metadata-block">
-            <span class="meta-label">Provider metadata, when returned</span>
-            <pre id="metadata">Not returned by provider.</pre>
-          </div>
+          <p class="article-link">Read the article: <span>link pending</span></p>
         </div>
       </section>
 
@@ -104,6 +94,5 @@
         <span>Secrets stay on the server.</span>
       </footer>
     </main>
-    <script type="module" src="/app.js"></script>
   </body>
 </html>
