@@ -143,7 +143,6 @@ function renderResult(data) {
   `;
   renderScopeCheck(data.selectedIndices, executedSearchIndices);
   elements.evidenceSection.hidden = false;
-  elements.evidenceSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function loadRoutes() {
