@@ -18,7 +18,7 @@ Local demo of an application choosing a request-time search scope for one Agent 
 3. Run `npm run provision`. It verifies the product index, creates and seeds the support index, and creates or updates one direct Agent Studio agent with a dynamic search tool. Generated IDs and index names are written back to the shared `.env` and to the ignored `provisioned.env` file.
 4. The script writes `ALGOLIA_SUPPORT_INDEX`, `ALGOLIA_INDEX_ALLOWLIST`, and `DYNAMIC_ROUTING_AGENT_ID` into the shared `.env`, preserving the credentials you supplied. Set `PUBLISH_AGENTS=true` or pass `--publish` when the draft is ready to publish.
 5. Start the Next.js app with `npm run dev`, then open `http://localhost:3000`. For a production-style local check, run `npm run build && npm start`.
-6. Choose a trusted context, enter a question, and inspect the route, request scope, response, provider evidence, and timings. Submit another request to start fresh with the selected context.
+6. Choose a trusted context, enter a question, and inspect the route, request scope, response, scope check, and timings. Submit another request to start fresh with the selected context.
 
 `ALGOLIA_INDEX_ALLOWLIST` is generated and ordered: it contains the product index you supplied first, followed by the support index created by the script. The script overwrites any manually supplied allowlist so an unrelated index cannot enter the demo route map.
 

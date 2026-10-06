@@ -12,7 +12,6 @@
         <aside class="panel route-panel">
           <div class="panel-heading">
             <h2>Choose a context</h2>
-            <span id="config-status" class="status-chip">Loading…</span>
           </div>
           <div id="routes" class="route-list" aria-live="polite"></div>
           <div id="route-empty" class="empty-state" hidden>
@@ -23,18 +22,13 @@
 
         <section class="panel request-panel">
           <div class="panel-heading">
-            <div>
-              <p class="section-kicker">Each request starts fresh</p>
-              <h2>Ask the same agent</h2>
-            </div>
+            <h2>Ask the same agent</h2>
           </div>
-          <label class="question-label" for="question">Question</label>
-          <textarea id="question" rows="5" maxlength="4000" placeholder="Which products are best for a rainy weekend?">Which products are best for a rainy weekend?</textarea>
-          <div class="example-heading"><span class="meta-label">Try a question</span><span class="hint">Every request starts a new conversation.</span></div>
           <div id="examples" class="example-list" aria-label="Suggested questions"></div>
+          <label class="question-label" for="question">or, ask a custom question:</label>
+          <textarea id="question" rows="3" maxlength="4000" placeholder="Which products are best for a rainy weekend?">Which products are best for a rainy weekend?</textarea>
           <div class="request-footer">
-            <span class="hint">The route is resolved again on the server.</span>
-            <button id="run" type="button" disabled>Run completion</button>
+            <button id="run" type="button" disabled>Send to the agent</button>
           </div>
           <p id="error" class="error-message" role="alert" hidden></p>
           <div id="answer-card" class="chat-response" hidden>
@@ -61,32 +55,24 @@
         </div>
         <div id="evidence-section" class="evidence-section" hidden>
           <div class="evidence-heading">
-            <div>
-              <p class="section-kicker">Provider evidence</p>
-              <h2>What the request did</h2>
-            </div>
-            <span class="hint">Returned by Agent Studio when available.</span>
+            <h2>What the request did</h2>
           </div>
           <div class="evidence-grid">
             <div class="panel evidence-panel">
+              <h3>Latency</h3>
               <dl id="evidence" class="evidence"></dl>
-              <div id="scope-check" class="scope-check" hidden></div>
+              <p class="latency-note">Retrieval happens inside the Agent Studio completion and is not timed separately here.</p>
             </div>
             <div class="panel evidence-panel">
-              <div class="metadata-block">
-                <span class="meta-label">Provider metadata, when returned</span>
-                <pre id="metadata">Not returned by provider.</pre>
-              </div>
+              <h3>Search scope</h3>
+              <dl id="scope-evidence" class="evidence"></dl>
+              <div id="scope-check" class="scope-check" hidden></div>
             </div>
           </div>
           <p class="article-link">Read the article: <span>link pending</span></p>
         </div>
       </section>
 
-      <footer class="footer-note">
-        <span>Illustrative measurements only; not production telemetry.</span>
-        <span>Secrets stay on the server.</span>
-      </footer>
     </main>
     <script type="module" src="/app.js"></script>
   </body>

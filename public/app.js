@@ -8,7 +8,6 @@ const state = {
 const elements = {
   routes: document.querySelector("#routes"),
   routeEmpty: document.querySelector("#route-empty"),
-  status: document.querySelector("#config-status"),
   question: document.querySelector("#question"),
   run: document.querySelector("#run"),
   error: document.querySelector("#error"),
@@ -18,8 +17,8 @@ const elements = {
   answerCard: document.querySelector("#answer-card"),
   answer: document.querySelector("#answer"),
   evidence: document.querySelector("#evidence"),
+  scopeEvidence: document.querySelector("#scope-evidence"),
   scopeCheck: document.querySelector("#scope-check"),
-  metadata: document.querySelector("#metadata"),
   evidenceSection: document.querySelector("#evidence-section"),
 };
 
@@ -101,26 +100,13 @@ function setError(message = "") {
   elements.error.hidden = !message;
 }
 
-function renderReadiness(data) {
-  const ready = data.readiness.applicationId
-    && data.readiness.apiKey
-    && data.readiness.indices
-    && data.readiness.agent;
-  elements.status.textContent = ready ? "Ready to run" : "Config needed";
-  elements.status.classList.toggle("warning", !ready);
-}
-
-function formatMetadata(metadata) {
-  return metadata ? JSON.stringify(metadata, null, 2) : "Not returned by provider.";
-}
-
 function clearResult() {
   elements.answerCard.hidden = true;
   elements.evidenceSection.hidden = true;
   elements.answer.textContent = "";
   elements.evidence.replaceChildren();
+  elements.scopeEvidence.replaceChildren();
   elements.scopeCheck.hidden = true;
-  elements.metadata.textContent = "Not returned by provider.";
 }
 
 function comparableIndexName(index) {
@@ -148,14 +134,16 @@ function renderResult(data) {
   elements.answer.textContent = data.answer;
   const executedSearchIndices = Array.isArray(data.executedSearchIndices) ? data.executedSearchIndices : [];
   elements.evidence.innerHTML = `
-    <div><dt>Route time</dt><dd>${data.timings.routeMs} ms</dd></div>
-    <div><dt>Completion time</dt><dd>${data.timings.completionMs} ms</dd></div>
-    <div><dt>Request scope</dt><dd>${formatIndexList(data.selectedIndices)}</dd></div>
-    <div><dt>Agent Studio searched</dt><dd>${formatIndexList(executedSearchIndices)}</dd></div>
-    <div><dt>API</dt><dd>Agent Studio REST v${data.provider.apiVersion}</dd></div>
+    <div><dt>Routing</dt><dd>${data.timings.routeMs} ms</dd></div>
+    <div><dt>Generation</dt><dd>${data.timings.completionMs} ms</dd></div>
+    <div><dt>Retrieval</dt><dd>${executedSearchIndices.length > 0 ? `${executedSearchIndices.length} index searched` : "No search reported"}</dd></div>
+    <div><dt>Total</dt><dd>${data.timings.totalMs} ms</dd></div>
+  `;
+  elements.scopeEvidence.innerHTML = `
+    <div><dt>Requested scope</dt><dd>${formatIndexList(data.selectedIndices)}</dd></div>
+    <div><dt>Searched index</dt><dd>${formatIndexList(executedSearchIndices)}</dd></div>
   `;
   renderScopeCheck(data.selectedIndices, executedSearchIndices);
-  elements.metadata.textContent = formatMetadata(data.searchToolMetadata);
   elements.evidenceSection.hidden = false;
   elements.evidenceSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -168,13 +156,10 @@ async function loadRoutes() {
     state.routes = data.routes;
     state.publicConfig = data;
     state.selectedRouteId = state.routes[0]?.id || "";
-    renderReadiness(data);
     renderRoutes();
     renderDecision();
   } catch (error) {
     setError(error.message);
-    elements.status.textContent = "Unavailable";
-    elements.status.classList.add("warning");
   }
 }
 
@@ -204,7 +189,7 @@ async function runCompletion() {
     renderExamples();
     renderDecision();
     elements.run.classList.remove("loading");
-    elements.run.textContent = "Run completion";
+    elements.run.textContent = "Send to the agent";
   }
 }
 
