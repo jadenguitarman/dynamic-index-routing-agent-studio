@@ -18,6 +18,7 @@ const elements = {
   requestPayload: document.querySelector("#request-payload"),
   answerCard: document.querySelector("#answer-card"),
   answer: document.querySelector("#answer"),
+  detailsHint: document.querySelector("#details-hint"),
   evidence: document.querySelector("#evidence"),
   scopeEvidence: document.querySelector("#scope-evidence"),
   scopeCheck: document.querySelector("#scope-check"),
@@ -101,6 +102,7 @@ function setError(message = "") {
 
 function clearResult() {
   elements.answerCard.hidden = true;
+  elements.detailsHint.hidden = true;
   elements.evidenceSection.hidden = true;
   elements.answer.textContent = "";
   elements.evidence.replaceChildren();
@@ -143,6 +145,7 @@ function renderResult(data) {
   `;
   renderScopeCheck(data.selectedIndices, executedSearchIndices);
   elements.evidenceSection.hidden = false;
+  elements.detailsHint.hidden = false;
 }
 
 async function loadRoutes() {

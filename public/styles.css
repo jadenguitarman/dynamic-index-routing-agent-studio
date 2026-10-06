@@ -99,6 +99,9 @@ button#run.loading { display: inline-flex; gap: 8px; align-items: center; }
 .chat-response { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 20px; }
 .response-heading, .evidence-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
 .chat-response .answer { min-height: 0; }
+.details-hint { display: flex; align-items: center; gap: 8px; width: fit-content; margin: 18px 0 0 auto; color: var(--muted); font-size: 11px; font-weight: 700; }
+.details-hint-arrow { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--line); border-radius: 99px; color: var(--lime-deep); font-size: 16px; line-height: 1; animation: details-bounce 1.4s ease-in-out infinite; }
+@keyframes details-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 .evidence { display: grid; gap: 0; margin: 0; }
 .evidence > div { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding: 11px 0; gap: 12px; }
 .evidence dt { color: var(--muted); font-size: 12px; }
