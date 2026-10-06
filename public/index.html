@@ -13,7 +13,7 @@
           <div class="panel-heading">
             <h2>Choose a context</h2>
           </div>
-          <div id="routes" class="route-list" aria-live="polite"></div>
+          <div id="routes" class="route-list" role="radiogroup" aria-label="Choose a context" aria-live="polite"></div>
           <div id="route-empty" class="empty-state" hidden>
             <strong>No approved indices configured.</strong>
             <span>Add dedicated test indices or partitions to <code>.env</code> before running a completion.</span>
@@ -44,7 +44,6 @@
             <p class="section-kicker">How it works</p>
             <h2>See the routing decision</h2>
           </div>
-          <span class="decision-label">Visible before the request runs</span>
         </div>
         <div id="decision-content" class="decision-content">
           <div class="decision-placeholder">Choose a context above to see how the application narrows the search scope for the same Agent Studio agent.</div>
@@ -61,7 +60,6 @@
             <div class="panel evidence-panel">
               <h3>Latency</h3>
               <dl id="evidence" class="evidence"></dl>
-              <p class="latency-note">Retrieval happens inside the Agent Studio completion and is not timed separately here.</p>
             </div>
             <div class="panel evidence-panel">
               <h3>Search scope</h3>

@@ -1,3 +1,5 @@
+import { renderMarkdown } from "/markdown.js";
+
 const state = {
   routes: [],
   selectedRouteId: "",
@@ -36,20 +38,17 @@ function renderRoutes() {
   elements.routes.replaceChildren();
   elements.routeEmpty.hidden = state.routes.length > 0;
   for (const route of state.routes) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.disabled = state.isRunning;
-    button.className = `route-card${route.id === state.selectedRouteId ? " selected" : ""}`;
-    button.dataset.route = route.id;
-    button.innerHTML = `<span class="route-radio" aria-hidden="true"></span><span class="route-copy"><strong>${route.label}</strong><small>${route.contextSignal}</small><span>${route.description}</span></span><span class="route-arrow" aria-hidden="true">↗</span>`;
-    button.addEventListener("click", () => {
-      if (state.isRunning) return;
+    const card = document.createElement("label");
+    card.className = `route-card${route.id === state.selectedRouteId ? " selected" : ""}`;
+    card.dataset.route = route.id;
+    card.innerHTML = `<input class="route-radio-input" type="radio" name="context" value="${route.id}"${route.id === state.selectedRouteId ? " checked" : ""}${state.isRunning ? " disabled" : ""}><span class="route-choice" aria-hidden="true"><span class="route-choice-mark"></span></span><span class="route-copy"><strong>${route.label}</strong><small>${route.contextSignal}</small><span>${route.description}</span></span><span class="route-arrow" aria-hidden="true">↗</span>`;
+    card.querySelector("input").addEventListener("change", () => {
       state.selectedRouteId = route.id;
       clearResult();
       renderRoutes();
       renderDecision();
     });
-    elements.routes.append(button);
+    elements.routes.append(card);
   }
 }
 
@@ -131,12 +130,11 @@ function renderScopeCheck(selectedIndices, executedIndices) {
 
 function renderResult(data) {
   elements.answerCard.hidden = false;
-  elements.answer.textContent = data.answer;
+  elements.answer.innerHTML = renderMarkdown(data.answer);
   const executedSearchIndices = Array.isArray(data.executedSearchIndices) ? data.executedSearchIndices : [];
   elements.evidence.innerHTML = `
     <div><dt>Routing</dt><dd>${data.timings.routeMs} ms</dd></div>
     <div><dt>Generation</dt><dd>${data.timings.completionMs} ms</dd></div>
-    <div><dt>Retrieval</dt><dd>${executedSearchIndices.length > 0 ? `${executedSearchIndices.length} index searched` : "No search reported"}</dd></div>
     <div><dt>Total</dt><dd>${data.timings.totalMs} ms</dd></div>
   `;
   elements.scopeEvidence.innerHTML = `
