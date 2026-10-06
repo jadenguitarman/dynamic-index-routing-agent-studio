@@ -21,7 +21,7 @@ test("builds only routes backed by approved indices", () => {
       agentLabel: "One dynamic Agent Studio agent",
       contextSignal: "Product page or shopping journey",
       examples: [
-        "I'm looking for a jacket for a rainy weekend.",
+        "What compact printers are available?",
         "Which products would work for a small home office?",
       ],
       indices: ["catalog_test"],

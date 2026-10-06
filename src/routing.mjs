@@ -7,7 +7,7 @@ const ROUTE_DEFINITIONS = [
     agentLabel: "One dynamic Agent Studio agent",
     contextSignal: "Product page or shopping journey",
     examples: [
-      "I'm looking for a jacket for a rainy weekend.",
+      "What compact printers are available?",
       "Which products would work for a small home office?",
     ],
     indexPosition: 0,
@@ -20,7 +20,7 @@ const ROUTE_DEFINITIONS = [
     agentLabel: "One dynamic Agent Studio agent",
     contextSignal: "Support page or account question",
     examples: [
-      "How do I reset a SAML login?",
+      "What should I check if SAML login fails?",
       "How do I change my plan?",
     ],
     indexPosition: 1,
