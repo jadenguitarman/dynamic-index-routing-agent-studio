@@ -11,19 +11,14 @@
       <section class="demo-hero" aria-label="Routing demo">
         <aside class="panel route-panel">
           <div class="panel-heading">
-            <div>
-              <p class="section-kicker">Trusted context</p>
-              <h1>Route the question<br /><em>before</em> the agent runs.</h1>
-            </div>
+            <h2>Choose a context</h2>
             <span id="config-status" class="status-chip">Loading…</span>
           </div>
-          <p class="panel-intro">Choose the context your application already knows. The server turns it into a route; the browser never chooses an index.</p>
           <div id="routes" class="route-list" aria-live="polite"></div>
           <div id="route-empty" class="empty-state" hidden>
             <strong>No approved indices configured.</strong>
             <span>Add dedicated test indices or partitions to <code>.env</code> before running a completion.</span>
           </div>
-          <p class="context-note">These are simulated signals from the application, not index names.</p>
         </aside>
 
         <section class="panel request-panel">
