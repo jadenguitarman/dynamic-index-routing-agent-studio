@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,25 +6,27 @@ import { performance } from "node:perf_hooks";
 import { assertCompletionConfig, loadConfig, publicConfig } from "./src/config.mjs";
 import { requestCompletion } from "./src/agent-studio.mjs";
 import { assertApprovedIndices, buildRouteMap, resolveRoute } from "./src/routing.mjs";
+import { nodeCorsHeaders } from "./src/cors.mjs";
 
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)));
 const PUBLIC_ROOT = join(ROOT, "public");
 const config = loadConfig();
 
-function sendJson(response, statusCode, body) {
+function sendJson(response, statusCode, body, request) {
   response.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
+    ...nodeCorsHeaders(request?.headers?.origin),
   });
   response.end(JSON.stringify(body));
 }
 
-function sendError(response, error) {
+function sendError(response, error, request) {
   const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
   sendJson(response, statusCode, {
     error: error.message || "Unexpected server error.",
     ...(error.providerStatus ? { providerStatus: error.providerStatus } : {}),
-  });
+  }, request);
 }
 
 function readJson(request) {
@@ -56,11 +58,36 @@ function validateQuestion(question) {
 }
 
 async function handleApi(request, response, url) {
+  if (request.method === "OPTIONS" && ["/api/routes", "/api/completion", "/embed"].includes(url.pathname)) {
+    response.writeHead(204, {
+      ...nodeCorsHeaders(request.headers.origin),
+    });
+    response.end();
+    return true;
+  }
+
+  if (request.method === "GET" && url.pathname === "/embed") {
+    const source = readFileSync(join(PUBLIC_ROOT, "index.html"), "utf8");
+    const body = source.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] || "";
+    const container = body.match(/<main\b[^>]*class=["'][^"']*\bshell\b[^"']*["'][\s\S]*?<\/main>/i)?.[0];
+    if (!container) {
+      sendError(response, new Error("The demo shell container could not be found."), request);
+      return true;
+    }
+    response.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      ...nodeCorsHeaders(request.headers.origin),
+    });
+    response.end(container);
+    return true;
+  }
+
   if (request.method === "GET" && url.pathname === "/api/routes") {
     sendJson(response, 200, {
       ...publicConfig(config),
       routes: buildRouteMap(config.approvedIndices),
-    });
+    }, request);
     return true;
   }
 
@@ -95,9 +122,9 @@ async function handleApi(request, response, url) {
       searchToolMetadata: completion.searchToolMetadata,
       answer: completion.text || "Agent Studio returned no text in the response payload.",
       provider: config.provider,
-    });
+    }, request);
   } catch (error) {
-    sendError(response, error);
+    sendError(response, error, request);
   }
   return true;
 }
@@ -113,18 +140,22 @@ function contentType(filePath) {
 
 function serveStatic(request, response, url) {
   if (request.method !== "GET") {
-    sendJson(response, 405, { error: "Method not allowed." });
+    sendJson(response, 405, { error: "Method not allowed." }, request);
     return;
   }
 
   const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
   const filePath = normalize(join(PUBLIC_ROOT, requestedPath));
   if (!filePath.startsWith(`${PUBLIC_ROOT}/`) || !existsSync(filePath) || !statSync(filePath).isFile()) {
-    sendJson(response, 404, { error: "Not found." });
+    sendJson(response, 404, { error: "Not found." }, request);
     return;
   }
 
-  response.writeHead(200, { "Content-Type": contentType(filePath), "Cache-Control": "no-store" });
+  response.writeHead(200, {
+    "Content-Type": contentType(filePath),
+    "Cache-Control": "no-store",
+    ...(["/app.js", "/markdown.js"].includes(url.pathname) ? { "Access-Control-Allow-Origin": "*" } : {}),
+  });
   createReadStream(filePath).pipe(response);
 }
 
@@ -134,7 +165,7 @@ const server = createServer(async (request, response) => {
     if (await handleApi(request, response, url)) return;
     serveStatic(request, response, url);
   } catch (error) {
-    sendError(response, error);
+    sendError(response, error, request);
   }
 });
 

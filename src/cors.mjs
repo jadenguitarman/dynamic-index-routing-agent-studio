@@ -14,15 +14,20 @@ export function allowedEmbedOrigins() {
   return new Set([...DEFAULT_EMBED_ORIGINS, ...configured]);
 }
 
+export function nodeCorsHeaders(origin) {
+  if (!origin || !allowedEmbedOrigins().has(origin)) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Accept",
+  };
+}
+
 export function corsHeaders(request) {
   const headers = new Headers();
   const origin = request.headers.get("origin");
-  if (origin && allowedEmbedOrigins().has(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
-    headers.set("Vary", "Origin");
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    headers.set("Access-Control-Allow-Headers", "Content-Type, Accept");
-  }
+  Object.entries(nodeCorsHeaders(origin)).forEach(([name, value]) => headers.set(name, value));
   return headers;
 }
 
