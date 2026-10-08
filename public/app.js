@@ -1,4 +1,9 @@
-import { renderMarkdown } from "/markdown.js";
+import { renderMarkdown } from "./markdown.js";
+
+const demoRoot = window.__DYNAMIC_ROUTING_DEMO_ROOT__ || document;
+const demoOrigin = String(window.__DYNAMIC_ROUTING_DEMO_ORIGIN__ || "").replace(/\/+$/, "");
+const demoUrl = (path) => `${demoOrigin}${path}`;
+const query = (selector) => demoRoot.querySelector(selector);
 
 const state = {
   routes: [],
@@ -8,21 +13,21 @@ const state = {
 };
 
 const elements = {
-  routes: document.querySelector("#routes"),
-  routeEmpty: document.querySelector("#route-empty"),
-  question: document.querySelector("#question"),
-  run: document.querySelector("#run"),
-  error: document.querySelector("#error"),
-  decision: document.querySelector("#decision-content"),
-  examples: document.querySelector("#examples"),
-  requestPayload: document.querySelector("#request-payload"),
-  answerCard: document.querySelector("#answer-card"),
-  answer: document.querySelector("#answer"),
-  detailsHint: document.querySelector("#details-hint"),
-  evidence: document.querySelector("#evidence"),
-  scopeEvidence: document.querySelector("#scope-evidence"),
-  scopeCheck: document.querySelector("#scope-check"),
-  evidenceSection: document.querySelector("#evidence-section"),
+  routes: query("#routes"),
+  routeEmpty: query("#route-empty"),
+  question: query("#question"),
+  run: query("#run"),
+  error: query("#error"),
+  decision: query("#decision-content"),
+  examples: query("#examples"),
+  requestPayload: query("#request-payload"),
+  answerCard: query("#answer-card"),
+  answer: query("#answer"),
+  detailsHint: query("#details-hint"),
+  evidence: query("#evidence"),
+  scopeEvidence: query("#scope-evidence"),
+  scopeCheck: query("#scope-check"),
+  evidenceSection: query("#evidence-section"),
 };
 
 function selectedRoute() {
@@ -150,7 +155,7 @@ function renderResult(data) {
 
 async function loadRoutes() {
   try {
-    const response = await fetch("/api/routes");
+    const response = await fetch(demoUrl("/api/routes"));
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not load routes.");
     state.routes = data.routes;
@@ -158,8 +163,10 @@ async function loadRoutes() {
     state.selectedRouteId = state.routes[0]?.id || "";
     renderRoutes();
     renderDecision();
+    window.dispatchEvent(new CustomEvent("dynamic-routing-demo-ready", { detail: { root: demoRoot } }));
   } catch (error) {
     setError(error.message);
+    window.dispatchEvent(new CustomEvent("dynamic-routing-demo-error", { detail: { root: demoRoot, error } }));
   }
 }
 
@@ -173,7 +180,7 @@ async function runCompletion() {
   elements.run.classList.add("loading");
   elements.run.innerHTML = "Running <span class=\"spinner\" aria-hidden=\"true\"></span>";
   try {
-    const response = await fetch("/api/completion", {
+    const response = await fetch(demoUrl("/api/completion"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ route: route.id, question: elements.question.value }),

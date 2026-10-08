@@ -2,13 +2,14 @@ import { performance } from "node:perf_hooks";
 import { assertCompletionConfig, loadConfig } from "../../../src/config.mjs";
 import { requestCompletion } from "../../../src/agent-studio.mjs";
 import { assertApprovedIndices, resolveRoute } from "../../../src/routing.mjs";
+import { jsonWithCors, optionsWithCors } from "../../../src/cors.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function errorResponse(error) {
+function errorResponse(request, error) {
   const status = Number.isInteger(error.statusCode) ? error.statusCode : 500;
-  return Response.json({ error: error.message || "Unexpected server error.", ...(error.providerStatus ? { providerStatus: error.providerStatus } : {}) }, { status });
+  return jsonWithCors(request, { error: error.message || "Unexpected server error.", ...(error.providerStatus ? { providerStatus: error.providerStatus } : {}) }, { status });
 }
 
 function validateQuestion(question) {
@@ -33,8 +34,12 @@ export async function POST(request) {
     assertCompletionConfig(config);
     const completionStartedAt = performance.now();
     const completion = await requestCompletion({ config: { ...config, agentId: config.agentId }, question, indices: route.indices });
-    return Response.json({ route, timings: { routeMs, completionMs: Math.round(performance.now() - completionStartedAt), totalMs: Math.round(performance.now() - startedAt) }, selectedIndices: route.indices, request: { algolia: { indices: route.indices } }, executedSearchIndices: completion.executedSearchIndices, searchToolMetadata: completion.searchToolMetadata, answer: completion.text || "Agent Studio returned no text in the response payload.", provider: config.provider });
+    return jsonWithCors(request, { route, timings: { routeMs, completionMs: Math.round(performance.now() - completionStartedAt), totalMs: Math.round(performance.now() - startedAt) }, selectedIndices: route.indices, request: { algolia: { indices: route.indices } }, executedSearchIndices: completion.executedSearchIndices, searchToolMetadata: completion.searchToolMetadata, answer: completion.text || "Agent Studio returned no text in the response payload.", provider: config.provider });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(request, error);
   }
+}
+
+export function OPTIONS(request) {
+  return optionsWithCors(request);
 }

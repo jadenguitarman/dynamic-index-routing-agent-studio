@@ -19,4 +19,16 @@ export default {
     NEXT_PUBLIC_SIGNALDOCK_BASE_URL: sharedPublicEnv('NEXT_PUBLIC_SIGNALDOCK_BASE_URL'),
     NEXT_PUBLIC_SIGNALDOCK_APP_KEY: sharedPublicEnv('NEXT_PUBLIC_SIGNALDOCK_APP_KEY'),
   },
+  async headers() {
+    return [
+      {
+        source: "/app.js",
+        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+      },
+      {
+        source: "/markdown.js",
+        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+      },
+    ];
+  },
 };

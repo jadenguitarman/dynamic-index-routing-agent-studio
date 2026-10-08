@@ -36,6 +36,8 @@ To update the linked Vercel project after provisioning, export a Vercel access t
 
 The app uses the Next.js App Router and server-side Route Handlers, so it can run locally or on Vercel. Add the same server-only environment variables to the Vercel project; do not expose them as `NEXT_PUBLIC_*` values.
 
+The article embed fetches `/embed`, which returns the same `.shell` container used by the page, then loads `/styles.css` and `/app.js` from this origin. The runtime calls `/api/routes` and `/api/completion` here as well, so the browser never redirects those requests to the host article. The default cross-origin allowlist includes the Authors Collective and Algolia origins used by the article; extend it with `DYNAMIC_ROUTING_EMBED_ALLOWED_ORIGINS` if the publishing origin changes.
+
 The provisioning script creates one direct Agent Studio agent with a dynamic `algolia_search_index` tool and an approved list containing the supplied product index plus the generated support index. The server chooses the request scope from application context and sends it as `algolia.indices`; it never trusts a browser-supplied index name. This uses Agent Studio directly and does not use DocSearch. See Algolia’s [Agent Studio API](https://www.algolia.com/doc/rest-api/agent-studio) and [Agent Studio tools guide](https://www.algolia.com/doc/guides/algolia-ai/agent-studio/how-to/tools/overview).
 
 ## Checks
